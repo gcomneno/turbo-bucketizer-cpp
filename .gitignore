@@ -1,0 +1,14 @@
+# build directory
+/build/
+
+# CMake artefacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# other common junk
+*.o
+*.obj
+*.log
+*.tmp
