@@ -42,6 +42,7 @@ if(BUILD_TESTING)
 
     add_executable(tb_tests
         tests/test_bucketizer.cpp
+        tests/catch_amalgamated.cpp
     )
 
     target_include_directories(tb_tests

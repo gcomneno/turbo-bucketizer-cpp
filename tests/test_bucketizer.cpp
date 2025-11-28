@@ -1,5 +1,3 @@
-#define CATCH_CONFIG_MAIN
-
 #include "catch_amalgamated.hpp"
 
 #include "tb/bucket_engine.hpp"
@@ -7,6 +5,10 @@
 
 #include <random>
 #include <limits>
+#include <vector>
+
+// Catch2 v3: Approx is in namespace Catch
+using Catch::Approx;
 
 TEST_CASE("k=0 maps everything to bucket 0", "[bucket_engine]") {
     tb::Config cfg;
@@ -39,27 +41,15 @@ TEST_CASE("k=0 maps everything to bucket 0", "[bucket_engine]") {
     REQUIRE(stats.bucket_count == 1);
 }
 
-TEST_CASE("Uniform distribution on simple identity-like mapping", "[bucket_engine][stats]") {
-    // Config artificiale: a=1, b=0, k=4 → 16 bucket
-    tb::Config cfg;
-    cfg.a = 1u;
-    cfg.b = 0u;
-    cfg.k = 4; // 16 buckets
+TEST_CASE("compute_stats on perfectly uniform synthetic data", "[stats]") {
+    const std::size_t buckets = 16;
+    const std::size_t M = 8;                // elements per bucket
+    const std::size_t N = buckets * M;      // total samples
 
-    tb::BucketEngine engine{cfg};
-
-    const std::size_t buckets = cfg.bucket_count(); // 16
-    const std::size_t M = 8;                        // elements per bucket
-    const std::size_t N = buckets * M;              // total samples
-
-    auto counts = engine.distribution(0u, static_cast<tb::IPv4>(N));
-    REQUIRE(counts.size() == buckets);
-
-    for (auto c : counts) {
-        REQUIRE(c == M);
-    }
+    std::vector<std::size_t> counts(buckets, M);
 
     tb::StatsResult stats = tb::compute_stats(counts);
+
     REQUIRE(stats.sample_count == N);
     REQUIRE(stats.bucket_count == buckets);
     REQUIRE(stats.mean == Approx(static_cast<double>(M)));

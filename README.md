@@ -1,11 +1,13 @@
 # Turbo-Bucketizer C++17
 
-A modern C++17 reimplementation of the original C project [**Turbo-Bucketizer**](https://github.com/gcomneno/turbo-bucketizer).
+Turbo-Bucketizer C++17 is a deterministic IPv4 partitioning engine built as a modern, production-style C++17 library.  
+It maps IPv4 addresses to `2^k` buckets using an efficient affine permutation modulo 2³², ensuring uniform distribution, reproducibility, and O(1) computation per address.
 
-This edition is designed as a **clean, reusable library + CLI** that can be used as:
-- a portfolio piece for C++17 (system / performance-oriented),
-- a small building block for deterministic IPv4 sharding / load balancing,
-- a sandbox for uniformity / hashing experiments.
+This repository is structured like most modern C++17 systems:
+clear layering, small cohesive components, predictable behavior, zero undefined behavior, and maintainable code intended for long-term usage.
+
+It also showcases a realistic real-world domain: deterministic hashing and sharding
+— the same principles used in load balancers, distributed caches, consistent hashing rings, and network telemetry tools.
 
 ---
 
@@ -49,6 +51,7 @@ tests/
 ```
 
 ## ⚙️ Core API (library)
+```bash
 tb::Config
 #include "tb/types.hpp"
 
@@ -87,29 +90,37 @@ tb::StatsResult stats = tb::compute_stats(counts);
 // stats.stddev        -> standard deviation of counts
 // stats.chi2          -> chi-square statistic
 // stats.uniformity    -> 0..100% (simple “how flat is it” metric)
+```
 
 ## 🖥️ CLI usage
 
 The CLI (tb_cli) is a thin layer on top of the engine.
 
-Build
-mkdir build
-cd build
-cmake ..
-cmake --build .
+### Build
+```bash
+  mkdir build
+  cd build
+  cmake ..
+  cmake --build .
+```
 
+or, from root-project:
+```bash
+  make
+  make test
+```
 
 This will produce:
-tb_cli (the CLI app)
-tb_core (the library)
-tb_tests (if testing is enabled and Catch2 header is present)
+  tb_cli (the CLI app)
+  tb_core (the library)
+  tb_tests (if testing is enabled and Catch2 header is present)
 
-Help
+### Help
 ./tb_cli --help
 
-Example output:
-
+### Example output:
 Turbo-Bucketizer C++17 CLI
+```bash
 Usage:
   tb_cli --demo <N> [options]
   tb_cli --from-file <path> [options]
@@ -126,51 +137,56 @@ Options:
                        (overridden by --a/--b if provided)
   --show-buckets [N]   Print per-bucket counts (optionally limited to N buckets)
   --help               Show this help and exit
+```
 
 ## Demo mode
-
 Analyze a synthetic range of IPv4 values (treated as integers 0..N-1):
-./tb_cli --demo 1000000 --k 12 --preset default
-
+```bash
+  ./tb_cli --demo 1000000 --k 12 --preset default
+```
 
 Sample output (abridged):
+```text
+  Mode: demo
+  Range: [0, 1000000) (1000000 samples)
 
-Mode: demo
-Range: [0, 1000000) (1000000 samples)
+  Config:
+    a = 0x9E3779B1
+    b = 0x85EBCA77
+    k = 12 (buckets = 4096)
 
-Config:
-  a = 0x9E3779B1
-  b = 0x85EBCA77
-  k = 12 (buckets = 4096)
-
-Stats:
-  sample_count = 1000000
-  bucket_count = 4096
-  mean         = 244.1406
-  stddev       = 15.9374
-  chi2         = 38.4721
-  uniformity   = 97.4 %
-
+  Stats:
+    sample_count = 1000000
+    bucket_count = 4096
+    mean         = 244.1406
+    stddev       = 15.9374
+    chi2         = 38.4721
+    uniformity   = 97.4 %
+```
 
 To inspect the first buckets:
+```bash
     ./tb_cli --demo 1000000 --k 12 --preset default --show-buckets 16
+```
 
 ## Read IPv4 addresses from a file (one per line, dotted-quad format):
 
-# file: samples/ips.txt
+#### file: samples/ips.txt
+```text
 192.168.0.1
 192.168.0.2
 10.0.0.1
 10.0.0.2
 # comments and blank lines are ignored
+```
 
-Run:
+#### Run:
+```bash
     ./tb_cli --from-file samples/ips.txt --k 16 --preset wang --show-buckets 32
+```
 
 ## 🧪 Tests
-
 Tests are implemented with Catch2 as a single header.
-
 Download catch_amalgamated.hpp from the Catch2 project.
 
 Place it under:
@@ -204,6 +220,20 @@ Standalone:
     only depends on the C++17 standard library,
     tests use a single-header version of Catch2.
 
+## 🧭 Why C++17?
+
+This project is intentionally written in *pure* C++17 to demonstrate a production-style approach without external dependencies or modern-heavy frameworks.
+
+C++17 is an ideal target for this kind of system component because it offers:
+
+- **Strong, fixed-size types** (`std::uint32_t`, `std::size_t`) critical for bit-level work.
+- **Zero-cost abstractions**: clean APIs without sacrificing performance.
+- **RAII and deterministic lifetimes**, essential for predictable, safe system modules.
+- **Modern standard library features** (smart containers, `std::algorithm`, `[[nodiscard]]`).
+- **Portability and longevity**: C++17 is widely supported across compilers and platforms.
+
+The goal is not “fancy C++”, but **clean, maintainable, modern C++ that looks like something you’d trust in production** — while still hitting hundreds of millions of operations per second.
+
 ## 📎 Relation to the original C project
 
 This repository is a C++17 rewrite of the original C project:
@@ -216,5 +246,18 @@ Original C version:
 
 C++17 version (this repo):
 👉 focuses on readability, structure, and testability for code reviews and interviews.
+
+## 👀 For Reviewers
+
+This repository is intentionally designed to showcase modern C++17 skills in a clean, review-friendly layout:
+- **Clear separation of concerns**: `tb_core` (pure library), `tb_cli` (frontend), `tb_tests` (independent).
+- **Modern idioms only**: RAII, `std::vector`, `std::uint32_t`, no macros, no raw pointers.
+- **Deterministic and reproducible**: same config → same bucketization, guaranteed.
+- **Self-contained**: no dependencies except C++17 and a single-header Catch2 for tests.
+- **Readable architecture**: header-first API design, minimal coupling, explicit lifetimes.
+- **Practical domain**: deterministic hashing / sharding of IPv4, with real-world applications.
+
+This codebase is intentionally small but structured like a production-ready component,
+so you can assess coding style, API design skills, and system-level thinking at a glance.
 
 ---
