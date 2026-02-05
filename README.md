@@ -48,8 +48,7 @@ apps/
   tb_cli.cpp           # command-line interface
 
 tests/
-  catch_amalgamated.hpp  # Catch2 single-header (not provided, see below)
-  test_bucketizer.cpp    # basic tests
+  test_bucketizer.cpp    # Catch2 tests (Catch2 fetched via CMake FetchContent)
 ```
 
 ## ⚙️ Core API (library)
@@ -113,9 +112,9 @@ or, from root-project:
 ```
 
 This will produce:
-  tb_cli (the CLI app)
-  tb_core (the library)
-  tb_tests (if testing is enabled and Catch2 header is present)
+- `tb_cli` (the CLI app)
+- `tb_core` (the library)
+- `tb_tests` (if testing is enabled; Catch2 is fetched automatically via CMake FetchContent)
 
 ### Help
 ./tb_cli --help
@@ -186,19 +185,17 @@ To inspect the first buckets:
 ```bash
     ./tb_cli --from-file samples/ips.txt --k 16 --preset wang --show-buckets 32
 ```
-
-Eccoti la sezione aggiornata, coerente con **FetchContent Catch2** + **ctest out-of-the-box** (niente download manuale). Copia/incolla al posto della tua.
-
 ## 🧪 Tests
 Tests use Catch2 v3 and are **fetched automatically via CMake FetchContent** (no manual header download).
 
 Configure, build, and run tests:
+
 ```bash
 mkdir -p build
 cmake -S . -B build -DBUILD_TESTING=ON
 cmake --build build
 ctest --test-dir build --output-on-failure
-````
+```
 
 The tests cover:
 - k = 0 edge case (all IPs map to bucket 0),
@@ -218,7 +215,7 @@ Clear layering:
 
 Standalone:
     only depends on the C++17 standard library,
-    tests use a single-header version of Catch2.
+    tests use Catch2 v3 via CMake FetchContent.
 
 ## 🧭 Why C++17?
 
@@ -253,7 +250,7 @@ This repository is intentionally designed to showcase modern C++17 skills in a c
 - **Clear separation of concerns**: `tb_core` (pure library), `tb_cli` (frontend), `tb_tests` (independent).
 - **Modern idioms only**: RAII, `std::vector`, `std::uint32_t`, no macros, no raw pointers.
 - **Deterministic and reproducible**: same config → same bucketization, guaranteed.
-- **Self-contained**: no dependencies except C++17 and a single-header Catch2 for tests.
+- **Self-contained**: no runtime dependencies (C++17 only); tests use Catch2 v3 via CMake FetchContent.
 - **Readable architecture**: header-first API design, minimal coupling, explicit lifetimes.
 - **Practical domain**: deterministic hashing / sharding of IPv4, with real-world applications.
 
