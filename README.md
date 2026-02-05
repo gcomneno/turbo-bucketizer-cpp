@@ -1,5 +1,7 @@
 # Turbo-Bucketizer C++17
 
+[![CI](https://github.com/gcomneno/turbo-bucketizer-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/gcomneno/turbo-bucketizer-cpp/actions/workflows/ci.yml)
+
 Turbo-Bucketizer C++17 is a deterministic IPv4 partitioning engine built as a modern, production-style C++17 library.  
 It maps IPv4 addresses to `2^k` buckets using an efficient affine permutation modulo 2³², ensuring uniform distribution, reproducibility, and O(1) computation per address.
 
@@ -185,25 +187,23 @@ To inspect the first buckets:
     ./tb_cli --from-file samples/ips.txt --k 16 --preset wang --show-buckets 32
 ```
 
+Eccoti la sezione aggiornata, coerente con **FetchContent Catch2** + **ctest out-of-the-box** (niente download manuale). Copia/incolla al posto della tua.
+
 ## 🧪 Tests
-Tests are implemented with Catch2 as a single header.
-Download catch_amalgamated.hpp from the Catch2 project.
+Tests use Catch2 v3 and are **fetched automatically via CMake FetchContent** (no manual header download).
 
-Place it under:
-    tests/catch_amalgamated.hpp
-
-Configure & build with testing enabled (default):
-
-mkdir build
-cd build
-cmake -DBUILD_TESTING=ON ..
-cmake --build .
-ctest
+Configure, build, and run tests:
+```bash
+mkdir -p build
+cmake -S . -B build -DBUILD_TESTING=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+````
 
 The tests cover:
 - k = 0 edge case (all IPs map to bucket 0),
-- a small “identity-like” configuration with perfect uniformity,
-- determinism of bucket_index and bucketize() (same config → same result).
+- perfectly uniform synthetic data (chi² = 0, uniformity = 100%),
+- determinism of `bucket_index` and `bucketize()` (same config → same result).
 
 ## 🧠 Design goals
 
